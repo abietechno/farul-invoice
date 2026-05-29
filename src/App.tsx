@@ -32,14 +32,27 @@ export default function App() {
     downPayment: 0,
   });
 
-  const [storeSettings, setStoreSettings] = useState<StoreSettings>({
-    name: 'Nama Toko Anda',
-    address: 'Jl. Contoh Alamat No. 123, Kota',
-    phone: '081234567890',
-    logoBase64: '',
+  const [storeSettings, setStoreSettings] = useState<StoreSettings>(() => {
+    const savedSettings = localStorage.getItem('STORE_SETTINGS');
+    if (savedSettings) {
+      try {
+        return JSON.parse(savedSettings);
+      } catch (e) {
+        console.error('Failed to parse settings');
+      }
+    }
+    return {
+      name: import.meta.env.VITE_STORE_NAME || 'Nama Toko Anda',
+      address: import.meta.env.VITE_STORE_ADDRESS || 'Jl. Contoh Alamat No. 123, Kota',
+      phone: import.meta.env.VITE_STORE_PHONE || '081234567890',
+      logoBase64: import.meta.env.VITE_STORE_LOGO || '',
+    };
   });
 
-  const [gasUrl, setGasUrl] = useState('');
+  const [gasUrl, setGasUrl] = useState(() => {
+    return import.meta.env.VITE_GAS_URL || localStorage.getItem('GAS_WEB_APP_URL') || '';
+  });
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -52,20 +65,6 @@ export default function App() {
   const totalAfterDiscount = subtotal - discountAmount;
   const grandTotal = totalAfterDiscount + invoice.shippingCost;
   const remainingBalance = grandTotal - invoice.downPayment;
-
-  useEffect(() => {
-    const savedUrl = localStorage.getItem('GAS_WEB_APP_URL');
-    if (savedUrl) setGasUrl(savedUrl);
-    
-    const savedSettings = localStorage.getItem('STORE_SETTINGS');
-    if (savedSettings) {
-      try {
-        setStoreSettings(JSON.parse(savedSettings));
-      } catch (e) {
-        console.error('Failed to parse settings');
-      }
-    }
-  }, []);
 
   const handleSaveSettings = (url: string, settings: StoreSettings) => {
     setGasUrl(url);
